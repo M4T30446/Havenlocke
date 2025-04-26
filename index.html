@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ufwrlxpyez</title>
+  <style>
+    body {
+      background-color: #0b0b0b;
+      color: #e6e6e6;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 30px;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      color: #ff0000;
+      text-shadow: 0 0 10px #ff0000;
+    }
+
+    .question {
+      margin-bottom: 25px;
+      padding: 15px;
+      background-color: #1a1a1a;
+      border-left: 5px solid #660000;
+      border-radius: 5px;
+    }
+
+    input[type="text"] {
+      background-color: #333;
+      border: none;
+      color: #fff;
+      padding: 8px;
+      width: 100%;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    button {
+      background-color: #660000;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #990000;
+    }
+
+    .result {
+      margin-top: 30px;
+      font-size: 18px;
+    }
+
+    .correct {
+      color: #66ff66;
+    }
+
+    .incorrect {
+      color: #ff3333;
+    }
+
+    .secreto {
+      color: #201f1f;
+      font-size: 8px;
+      position: absolute;
+      bottom: 5px;
+      right: 10px;
+      user-select: none;
+    }
+
+    /* Jumpscare */
+    #jumpscare {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+      width: 100vw;
+      height: 100vh;
+      background-color: black;
+      justify-content: center;
+      align-items: center;
+      animation: shake 0.3s infinite;
+    }
+
+    #jumpscare img {
+      max-width: 100%;
+      max-height: 100%;
+      animation: zoomIn 0.2s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <h1>Não Erre</h1>
+  <form id="quizForm"></form>
+  <button onclick="verificarRespostas()">Enviar Respostas</button>
+  <div id="resultado" class="result"></div>
+
+  <!-- Mensagem escondida -->
+  <div class="secreto">Fjpht cd uxb, bpxh jb edjrd.</div>
+
+  <!-- Jumpscare -->
+  <div id="jumpscare">
+    <img id="jumpscare-img" src="" alt="Jumpscare">
+  </div>
+  <audio id="audioGrito" src="grito.mp3" preload="auto"></audio>
+
+  <script>
+    const perguntas = [
+      {
+        tipo: "aberta",
+        pergunta: "Qual o nome do fantasma?",
+        resposta: "Mateo Olivine"
+      },
+      {
+        tipo: "multipla",
+        pergunta: "O que o andarilho perdeu aquela noite?",
+        opcoes: ["A Vida", "A Alma", "A Lanterna", "Todos anteriores"],
+        resposta: "A Lanterna"
+      },
+      {
+        tipo: "aberta",
+        pergunta: "O que não se deve fazer?",
+        resposta: "Correr"
+      },
+      {
+        tipo: "multipla",
+        pergunta: "Quem ainda está vivo?",
+        opcoes: ["Max", "Enzo", "Jules", "Caio"],
+        resposta: "Jules"
+      },
+      {
+        tipo: "aberta",
+        pergunta: "Qual o lugar onde morreram?",
+        resposta: "Igreja"
+      },
+      {
+        tipo: "aberta",
+        pergunta: "Qual o nome da sua criança?",
+        resposta: "Qualquer coisa",
+        ignorar: true
+      },
+    ];
+
+    const form = document.getElementById('quizForm');
+
+    perguntas.forEach((item, index) => {
+      const div = document.createElement('div');
+      div.className = 'question';
+
+      if (item.tipo === "aberta") {
+        div.innerHTML = `
+          <label for="q${index}">${item.pergunta}</label>
+          <input type="text" id="q${index}" name="q${index}">
+        `;
+      } else if (item.tipo === "multipla") {
+        let opcoesHTML = item.opcoes.map(op => `
+          <label><input type="radio" name="q${index}" value="${op}"> ${op}</label>
+        `).join('');
+        div.innerHTML = `<p>${item.pergunta}</p>${opcoesHTML}`;
+      }
+
+      form.appendChild(div);
+    });
+
+    function verificarRespostas() {
+      let acertos = 0;
+      let teveErro = false;
+      const resultadoDiv = document.getElementById('resultado');
+      resultadoDiv.innerHTML = "";
+
+      perguntas.forEach((item, index) => {
+        let respostaUsuario;
+
+        if (item.tipo === "aberta") {
+          respostaUsuario = document.getElementById(`q${index}`).value.trim().toLowerCase();
+        } else {
+          const selecionado = document.querySelector(`input[name="q${index}"]:checked`);
+          respostaUsuario = selecionado ? selecionado.value.trim().toLowerCase() : "";
+        }
+
+        const respostaCerta = item.resposta.trim().toLowerCase();
+
+        if (item.ignorar || respostaUsuario === respostaCerta) {
+            resultadoDiv.innerHTML += `<p class="correct">Pergunta ${index + 1}: Correta ✅</p>`;
+            acertos++;
+          } else {
+            resultadoDiv.innerHTML += `<p class="incorrect">Pergunta ${index + 1}: Errada ❌ (Correta: ${item.resposta})</p>`;
+            teveErro = true;
+          }
+          
+      });
+
+      resultadoDiv.innerHTML += `<p><strong>Você acertou ${acertos} de ${perguntas.length}.</strong></p>`;
+
+      // Após mostrar resultado, sempre executa jumpscare
+      setTimeout(() => {
+        const grito = document.getElementById('audioGrito');
+        const jumpscare = document.getElementById('jumpscare');
+        const img = document.getElementById('jumpscare-img');
+
+        img.src = teveErro ? 'mosh.gif' : 'oculto.png';
+
+        jumpscare.style.display = 'flex';
+        grito.play();
+
+        setTimeout(() => {
+            const grito = document.getElementById('audioGrito');
+            const jumpscare = document.getElementById('jumpscare');
+            const img = document.getElementById('jumpscare-img');
+          
+            img.src = teveErro ? 'mosh.gif' : 'oculto.gif';
+          
+            jumpscare.style.display = 'flex';
+            grito.play();
+          
+            // Não esconde mais! Fica até a página ser recarregada.
+          }, 1000);          
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
+
+<!--k94B>7@YB,<md06#x@-A&5"8X,<\h|359[$g&_);%2wS>,>i.){g&}+;]9*{}0)4TvkQ&x)]\5.84#![55{):9@YB,<m"1+4w-4\|9-;%05955xO-::wK5(&+%693%xO-::wG-(-,33(,5*4v-(?,9"&]5*.8P3(t{4-\yaCB,gF31!-!54"9OFCBf;89&#4$(4'_5|-:P2,8047t*({d4A&+0=(*0{9!4(-}{(\]0czj0-5!54-&8)?%06$3#4)mO:GDiM&]5*.)07-svtye43&;07+_=4)#-4,?{;%,uM\>,h?747]_@)c$7(,{1=$t48{&!)]%)2<*0--$7-)?--;)0(8+9+}x(5g&9'%\&{8+9*4y5>{/4:<$-@,{5*5s89)>+=-]P2[}5=-s_9|?-:&_5*,3%44y5$D*4=<;0>|xK>:-'iHK4)..-R8{&75@4ybD:FsB-2]87=5@48/&{;*:5}([5(8745/&#;;:&_88-{5!yOGD:vF.0%(!175@U4?*+)%>=78(uN:-:iJ>4{{>=78*=#}74{#Z:FCs>29-uN:-:jJ?4;%-9&875+{x4e9vT(?)%+$3*=-v[+-/4;\/)(,3(}9s}5:(yaCB,gF*0{9!($;*+),b0+9&+8>s]-=9OFCBec8(uN:-:iJ>4+//5#93_xO-::wG-(/7K<\>f/Us -->
